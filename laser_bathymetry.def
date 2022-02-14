@@ -1,0 +1,33 @@
+Bootstrap: localimage
+From: base_ubuntu_2004.sif
+Stage: devel
+
+%labels
+    Author miquel.massot-campos@soton.ac.uk
+    Version v0.0.1
+
+%help
+    This is a singularity container for laser_bathymetry
+
+%files
+    # Copy the laser_bathymetry folder to the container
+    . /opt/laser_bathymetry_git
+
+%post -c /bin/bash
+    cd /opt/laser_bathymetry_git/ \
+        && bash get_git_hash.sh
+    rm -rf /opt/laser_bathymetry_git/build \
+        && mkdir -p /opt/laser_bathymetry_git/build \
+        && cd /opt/laser_bathymetry_git/build
+    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j8 install
+    NOW=`date`
+    echo "export NOW=\"${NOW}\"" >> $SINGULARITY_ENVIRONMENT
+
+%runscript
+    echo "This Apptainer container was created: $NOW"
+    echo "To run the app, please execute the following command:"
+    echo "  singularity exec laser_bathymetry.sif laser_bathymetry ARGS"
+
+%environment
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
